@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>echarts多图联动</title>
+    <script src="./jquery.min.js"></script>
+    <script src="./echarts.js"></script>
+    <style>
+        #main,
+        #main2 {
+            float: left;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="main" style="width:400px;height:300px"></div>
+    <div id="main2" style="width:600px;height:300px"></div>
+
+
+</body>
+<script>
+    $(document).ready(function() {
+        $.get('./queryCompanyYearSalaryList001.json', function(datas) {
+            //获取历年年份
+
+            var years = [];
+            for (var i = 0; i < datas.length; i++) {
+                years.push(datas[i].wd08);
+            }
+
+            var TotaLannualSalary = [];
+            for (var i = 0; i < datas.length; i++) {
+                TotaLannualSalary.push(datas[i].dl05/10000);
+
+            }
+
+            var chart = echarts.init(document.getElementById('main'));
+            var option = {
+                title:{
+                    show:true,
+                    text:'历史薪酬总量(应发)',
+                },
+                color: ['#3398DB'],
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { // 坐标轴指示器，坐标轴触发有效
+                        type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: [{
+                    type: 'category',
+                    data: years,
+                    axisTick: {
+                        alignWithLabel: true
+                    }
+                }],
+                yAxis: [{
+                    type: 'value'
+                }],
+                series: [{
+                    name: '直接访问',
+                    type: 'bar',
+                    barWidth: '60%',
+                    data: TotaLannualSalary
+                }]
+            };
+            chart.setOption(option);
+
+
+            
+            chart.on('click', function(params) {
+
+                $.get('./queryCompanyMonthSalaryList001.json', function(datas) {
+                     var month=[];
+                     var dl05 = [];
+                     var dl01 = [];
+
+                     for (var i = 0; i < datas.length; i++) {
+                        if (params.name === datas[i].wd08) {
+                             month.push(datas[i].wd09);
+                        }
+                    }
+
+                    for (var i = 0; i < datas.length; i++) {
+                        if (params.name === datas[i].wd08) {
+                             dl05.push((datas[i].dl05 / 10000).toFixed(2));
+                        }
+                    }
+
+                    for (var i = 0; i < datas.length; i++) {
+                        if (params.name === datas[i].wd08) {
+                             dl01.push((datas[i].dl01 / 10000).toFixed(2));
+                        }
+                    }
+                     
+                    var tq=[];
+                    var sum=0;
+                    for (var i = 0; i < datas.length; i++) {
+                        if (params.name === datas[i].wd08) {
+                                 sum=sum+datas[i].dl05/100000+datas[i].dl01/100000;
+                                 tq.push(sum.toFixed(2));
+                        }
+                    }
+                    console.log(tq);
+                   var chart2 = echarts.init(document.getElementById('main2'));
+
+            var option2 = {
+                title:{
+                    show:true,
+                    top:10,
+                    text:params.name+'薪酬总量(应发)',
+                },
+                color: ['#3398DB'],
+                legend:{
+                    show:true,
+                    top:30,
+                    data:[{
+                            name:'本期应发',
+                        },
+                         {
+                            name:'本期实发',
+                        },{
+                            name:'本期累计',
+                        }]
+                    
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { // 坐标轴指示器，坐标轴触发有效
+                        type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
+                    }
+                },
+                grid: {
+                    left: '1%',
+                    right: '1%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: [{
+                    type: 'category',
+                    data: month,
+                    axisTick: {
+                        alignWithLabel: true,
+                        interval: 0
+                    },
+                    axisLabel: {
+                        interval: 0
+                    }
+                }],
+                yAxis: [{
+                    type: 'value'
+                }],
+                series: [{
+                    name: '本期应发',
+                    type: 'bar',
+                    barWidth: '30%',
+                    data: dl05,
+                    color: ['#3398DB']
+                }, {
+                    name: '本期实发',
+                    type: 'bar',
+                    barWidth: '30%',
+                    data: dl01,
+                    color: ['#8470FF']
+                },
+                  {
+                    name: '本期累计',
+                    type: 'line',
+                    barWidth: '30%',
+                    data:tq,
+                    color: ['#8B1A1A']
+                }]
+            };
+
+            chart2.setOption(option2);
+                   
+
+
+                });
+            });
+            var chart2 = echarts.init(document.getElementById('main2'));
+
+            var option2 = {
+                color: ['#3398DB'],
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { // 坐标轴指示器，坐标轴触发有效
+                        type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
+                    }
+                },
+                grid: {
+                    left: '1%',
+                    right: '1%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: [{
+                    type: 'category',
+                    data: ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
+                    axisTick: {
+                        alignWithLabel: true,
+                        interval: 0
+                    },
+                    axisLabel: {
+                        interval: 0
+                    }
+                }],
+                yAxis: [{
+                    type: 'value'
+                }],
+                series: [{
+                    name: '直接访问',
+                    type: 'bar',
+                    barWidth: '30%',
+                    data: [],
+                    color: ['#3398DB']
+                }, {
+                    name: '直接访问',
+                    type: 'bar',
+                    barWidth: '30%',
+                    data: ['0','0','0','0','0','0','0','0','0','0','0'],
+                    color: ['#8470FF']
+                }]
+            };
+
+            chart2.setOption(option2);
+        });
+
+    });
+
+</script>
+
+</html>
